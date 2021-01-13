@@ -79,12 +79,23 @@ function handleLoginFailed(req) {
 }
 
 function getClientIp(req) {
-    return req.headers['x-real-ip'] || req.connection.remoteAddress;
+    let clientIp = req.headers['x-real-ip'] ||
+     req.headers['CF-Connecting-IP'] || 
+     req.headers['X-Forwarded-For'] ||  
+     req.connection.remoteAddress;
+
+    console.log(`ClientIP: ${clientIp}`)
+     return clientIp;
 }
 
 function inWhitelist(req) {
     var remoteIp = getClientIp(req);
     return getSiteConf()["whitelistIp"].indexOf(remoteIp) > -1;
+}
+
+function isPublishedSite(req) {
+    var targetSite =  getTargetSite(req);
+    return targetSite.published;
 }
 
 var listenPort = getSiteConf()["port"];
@@ -129,7 +140,7 @@ app.use(function (req, res, next) {
         return;
     }
 
-    if (!inWhitelist(req)) {
+    if (!inWhitelist(req) &&  !isPublishedSite(req)) {
         var url = req.originalUrl;
         if (url != loginUrl) {
             if (!req.session.user) {
@@ -144,7 +155,7 @@ app.use(function (req, res, next) {
         next();
     }
 }, function (req, res, next) {
-    if (!inWhitelist(req)) {
+    if (!inWhitelist(req) && !isPublishedSite(req)) {
         var url = req.originalUrl;
         if (url != loginUrl) {
             pipReq(req, res);
