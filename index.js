@@ -79,12 +79,13 @@ function handleLoginFailed(req) {
 }
 
 function getClientIp(req) {
-    let clientIp = req.headers['x-real-ip'] ||
-     req.headers['CF-Connecting-IP'] || 
-     req.headers['X-Forwarded-For'] ||  
+    let clientIp = req.headers['cf-connecting-ip'] || 
+     req.headers['x-forwarded-for'] ||  
+     req.headers['x-real-ip'] ||
      req.connection.remoteAddress;
 
-    console.log(`ClientIP: ${clientIp}`)
+    //var str = JSON.stringify(req.headers);
+     console.log(`ClientIP: ${clientIp}`);
      return clientIp;
 }
 
